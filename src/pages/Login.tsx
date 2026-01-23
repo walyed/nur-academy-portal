@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Login() {
@@ -28,48 +28,59 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Login</h2>
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Email *</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-          {errors.email && <span style={{ color: 'red', fontSize: '12px' }}>{errors.email}</span>}
-        </div>
+    <div style={{ maxWidth: '420px', margin: '60px auto', padding: '20px' }}>
+      <div className="card">
+        <h2 style={{ marginBottom: '8px' }}>Login</h2>
+        <p style={{ color: 'hsl(220 10% 50%)', marginBottom: '24px' }}>
+          Welcome back! Please enter your details.
+        </p>
+        
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500 }}>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              style={{ width: '100%' }}
+            />
+            {errors.email && <span style={{ color: 'hsl(0 70% 50%)', fontSize: '13px' }}>{errors.email}</span>}
+          </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Password *</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-          {errors.password && <span style={{ color: 'red', fontSize: '12px' }}>{errors.password}</span>}
-        </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500 }}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              style={{ width: '100%' }}
+            />
+            {errors.password && <span style={{ color: 'hsl(0 70% 50%)', fontSize: '13px' }}>{errors.password}</span>}
+          </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Login as:</label>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value as 'student' | 'tutor')}
-            style={{ width: '100%', padding: '8px' }}
-          >
-            <option value="student">Student</option>
-            <option value="tutor">Tutor</option>
-          </select>
-        </div>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500 }}>Login as</label>
+            <select 
+              value={role} 
+              onChange={(e) => setRole(e.target.value as 'student' | 'tutor')}
+              style={{ width: '100%' }}
+            >
+              <option value="student">Student</option>
+              <option value="tutor">Tutor</option>
+            </select>
+          </div>
 
-        <button type="submit" style={{ padding: '10px 20px', width: '100%' }}>
-          Login
-        </button>
-      </form>
+          <button type="submit" style={{ width: '100%', padding: '12px' }}>
+            Sign In
+          </button>
+        </form>
+
+        <p style={{ textAlign: 'center', marginTop: '20px', color: 'hsl(220 10% 50%)' }}>
+          Don't have an account? <Link to="/signup">Sign up</Link>
+        </p>
+      </div>
     </div>
   );
 }
