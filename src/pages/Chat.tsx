@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { mockMessages, Message } from '@/data/mockData';
-import { MessageCircle, Search, Send, Phone, Video, MoreVertical } from 'lucide-react';
+import { MessageCircle, Search, Send } from 'lucide-react';
 
 interface Contact {
   id: string;
@@ -224,42 +224,9 @@ export default function Chat() {
                   }} />
                 )}
               </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'hsl(220 20% 15%)' }}>
-                  {selectedContact.name}
-                </h3>
-                <p style={{ 
-                  color: selectedContact.online ? 'hsl(145 60% 40%)' : 'hsl(220 10% 55%)', 
-                  margin: 0, 
-                  fontSize: '13px',
-                  fontWeight: '500'
-                }}>
-                  {selectedContact.online ? '● Online' : '○ Offline'}
-                </p>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[Phone, Video, MoreVertical].map((Icon, i) => (
-                <button
-                  key={i}
-                  className="hover-scale"
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '12px',
-                    border: '1px solid hsl(220 15% 88%)',
-                    background: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: 'hsl(220 15% 45%)',
-                    padding: 0
-                  }}
-                >
-                  <Icon size={18} />
-                </button>
-              ))}
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'hsl(220 20% 15%)' }}>
+                {selectedContact.name}
+              </h3>
             </div>
           </div>
 
