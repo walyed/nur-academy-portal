@@ -90,6 +90,15 @@ export default function MonthlyCalendar({ slots, onSlotClick, editable = false }
             const isToday = isSameDay(dayDate, new Date());
             const hasSlots = status !== 'none';
 
+            const getBackgroundColor = () => {
+              if (!isCurrentMonth || !hasSlots) return 'bg-white';
+              if (isSelected) return 'ring-2 ring-[hsl(210_60%_50%)]';
+              if (status === 'available') return 'bg-[hsl(145_60%_88%)] hover:bg-[hsl(145_60%_82%)]';
+              if (status === 'booked') return 'bg-[hsl(0_65%_90%)] hover:bg-[hsl(0_65%_85%)]';
+              if (status === 'mixed') return 'bg-gradient-to-br from-[hsl(145_60%_88%)] to-[hsl(0_65%_90%)] hover:from-[hsl(145_60%_82%)] hover:to-[hsl(0_65%_85%)]';
+              return 'bg-white';
+            };
+
             return (
               <button
                 key={idx}
@@ -97,38 +106,22 @@ export default function MonthlyCalendar({ slots, onSlotClick, editable = false }
                 disabled={!hasSlots}
                 className={`
                   relative aspect-square p-1 rounded-lg transition-all duration-200
-                  flex flex-col items-center justify-center
-                  ${!isCurrentMonth ? 'opacity-30' : ''}
-                  ${isSelected ? 'ring-2 ring-[hsl(210_60%_50%)] bg-[hsl(210_60%_96%)]' : ''}
-                  ${hasSlots && !isSelected ? 'hover:bg-[hsl(220_15%_96%)] cursor-pointer' : 'cursor-default'}
-                  ${isToday && !isSelected ? 'bg-[hsl(220_15%_94%)]' : ''}
+                  flex flex-col items-center justify-center border
+                  ${!isCurrentMonth ? 'opacity-30 border-transparent' : 'border-[hsl(220_15%_90%)]'}
+                  ${getBackgroundColor()}
+                  ${hasSlots ? 'cursor-pointer' : 'cursor-default'}
+                  ${isToday ? 'ring-2 ring-[hsl(210_60%_60%)] ring-offset-1' : ''}
                 `}
               >
                 <span className={`
-                  text-sm font-medium
-                  ${isSelected ? 'text-[hsl(210_60%_40%)]' : 'text-[hsl(220_25%_25%)]'}
-                  ${!isCurrentMonth ? 'text-[hsl(220_10%_70%)]' : ''}
+                  text-sm font-semibold
+                  ${status === 'available' && isCurrentMonth ? 'text-[hsl(145_60%_25%)]' : ''}
+                  ${status === 'booked' && isCurrentMonth ? 'text-[hsl(0_65%_35%)]' : ''}
+                  ${status === 'mixed' && isCurrentMonth ? 'text-[hsl(220_25%_25%)]' : ''}
+                  ${!hasSlots || !isCurrentMonth ? 'text-[hsl(220_10%_60%)]' : ''}
                 `}>
                   {format(dayDate, 'd')}
                 </span>
-                
-                {/* Status Indicator */}
-                {hasSlots && isCurrentMonth && (
-                  <div className="flex gap-1 mt-1">
-                    {status === 'available' && (
-                      <div className="w-2 h-2 rounded-full bg-[hsl(145_60%_45%)]" />
-                    )}
-                    {status === 'booked' && (
-                      <div className="w-2 h-2 rounded-full bg-[hsl(0_65%_55%)]" />
-                    )}
-                    {status === 'mixed' && (
-                      <>
-                        <div className="w-2 h-2 rounded-full bg-[hsl(145_60%_45%)]" />
-                        <div className="w-2 h-2 rounded-full bg-[hsl(0_65%_55%)]" />
-                      </>
-                    )}
-                  </div>
-                )}
               </button>
             );
           })}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { tutors, tutorAvailability, TimeSlot } from '@/data/mockData';
 import StarRating from '@/components/StarRating';
+import MonthlyCalendar from '@/components/MonthlyCalendar';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -19,13 +20,6 @@ export default function StudentDashboard() {
     setBookingConfirmed(`Booking confirmed for ${slot.date} at ${slot.time}`);
     setTimeout(() => setBookingConfirmed(null), 3000);
   };
-
-  // Group slots by date for calendar view
-  const slotsByDate = slots.reduce((acc, slot) => {
-    if (!acc[slot.date]) acc[slot.date] = [];
-    acc[slot.date].push(slot);
-    return acc;
-  }, {} as Record<string, TimeSlot[]>);
 
   const selectedTutorData = tutors.find(t => t.id === selectedTutor);
 
@@ -118,7 +112,7 @@ export default function StudentDashboard() {
             <div>
               <h3 style={{ margin: 0 }}>📅 {selectedTutorData.name}'s Availability</h3>
               <p style={{ color: 'hsl(220 10% 50%)', fontSize: '14px', margin: '4px 0 0 0' }}>
-                Select a time slot to book
+                Click on a date to view and book available slots
               </p>
             </div>
             <Link to="/payment">
@@ -126,80 +120,11 @@ export default function StudentDashboard() {
             </Link>
           </div>
           
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-            gap: '16px' 
-          }}>
-            {Object.entries(slotsByDate).map(([date, dateSlots]) => (
-              <div 
-                key={date}
-                style={{
-                  background: 'hsl(220 20% 98%)',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  border: '1px solid hsl(220 15% 88%)'
-                }}
-              >
-                <div style={{
-                  background: 'hsl(210 60% 45%)',
-                  color: 'white',
-                  padding: '12px 16px',
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }}>
-                  📆 {new Date(date).toLocaleDateString('en-US', { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
-                </div>
-                <div style={{ padding: '12px' }}>
-                  {dateSlots.map((slot) => (
-                    <div 
-                      key={slot.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '10px 12px',
-                        marginBottom: '8px',
-                        background: 'white',
-                        borderRadius: '8px',
-                        border: '1px solid hsl(220 15% 90%)'
-                      }}
-                    >
-                      <span style={{ fontWeight: 500, fontSize: '14px' }}>
-                        🕐 {slot.time}
-                      </span>
-                      {slot.available ? (
-                        <button 
-                          onClick={() => handleBook(slot)}
-                          style={{ 
-                            padding: '5px 12px', 
-                            fontSize: '12px',
-                            background: 'hsl(145 60% 42%)'
-                          }}
-                        >
-                          Book
-                        </button>
-                      ) : (
-                        <span style={{ 
-                          fontSize: '12px',
-                          color: 'hsl(220 10% 60%)',
-                          padding: '5px 12px',
-                          background: 'hsl(220 15% 94%)',
-                          borderRadius: '6px'
-                        }}>
-                          Booked
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <MonthlyCalendar 
+            slots={slots} 
+            onSlotClick={handleBook}
+            editable={false}
+          />
         </section>
       )}
     </div>
