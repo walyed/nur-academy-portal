@@ -11,28 +11,56 @@ export default function Header() {
   };
 
   return (
-    <header style={{ borderBottom: '1px solid #ccc', padding: '10px 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: 'black' }}>
-          <h1 style={{ margin: 0, fontSize: '20px' }}>Nur Academy</h1>
+    <header style={{ 
+      background: 'white', 
+      borderBottom: '1px solid hsl(220 15% 85%)', 
+      padding: '16px 24px',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        maxWidth: '1200px', 
+        margin: '0 auto' 
+      }}>
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: '22px', 
+            color: 'hsl(210 60% 45%)',
+            fontWeight: 700
+          }}>
+            📚 Nur Academy
+          </h1>
         </Link>
         
-        <nav style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {user ? (
             <>
-              <span>Welcome, {user.name}</span>
+              <span style={{ color: 'hsl(220 10% 50%)' }}>
+                Welcome, <strong style={{ color: 'hsl(220 20% 20%)' }}>{user.name}</strong>
+              </span>
               <Link to={user.role === 'student' ? '/student-dashboard' : '/tutor-dashboard'}>
                 Dashboard
               </Link>
               <Link to="/chat">Chat</Link>
-              <button onClick={handleLogout} style={{ padding: '5px 10px' }}>
+              <button 
+                onClick={handleLogout} 
+                className="btn-secondary"
+                style={{ padding: '8px 16px' }}
+              >
                 Logout
               </button>
             </>
           ) : (
             <>
               <Link to="/login">Login</Link>
-              <Link to="/signup">Signup</Link>
+              <Link to="/signup">
+                <button style={{ padding: '8px 20px' }}>Sign Up</button>
+              </Link>
             </>
           )}
         </nav>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Signup() {
@@ -30,71 +30,103 @@ export default function Signup() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Sign Up</h2>
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Name *</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-          {errors.name && <span style={{ color: 'red', fontSize: '12px' }}>{errors.name}</span>}
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Email *</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-          {errors.email && <span style={{ color: 'red', fontSize: '12px' }}>{errors.email}</span>}
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Password *</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-          {errors.password && <span style={{ color: 'red', fontSize: '12px' }}>{errors.password}</span>}
-        </div>
-
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>I am a:</label>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <label>
-              <input
-                type="radio"
-                name="role"
-                value="student"
-                checked={role === 'student'}
-                onChange={() => setRole('student')}
-              /> Student
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="role"
-                value="tutor"
-                checked={role === 'tutor'}
-                onChange={() => setRole('tutor')}
-              /> Tutor
-            </label>
+    <div style={{ maxWidth: '420px', margin: '60px auto', padding: '20px' }}>
+      <div className="card">
+        <h2 style={{ marginBottom: '8px' }}>Create Account</h2>
+        <p style={{ color: 'hsl(220 10% 50%)', marginBottom: '24px' }}>
+          Join Nur Academy today.
+        </p>
+        
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500 }}>Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Doe"
+              style={{ width: '100%' }}
+            />
+            {errors.name && <span style={{ color: 'hsl(0 70% 50%)', fontSize: '13px' }}>{errors.name}</span>}
           </div>
-        </div>
 
-        <button type="submit" style={{ padding: '10px 20px', width: '100%' }}>
-          Sign Up
-        </button>
-      </form>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500 }}>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              style={{ width: '100%' }}
+            />
+            {errors.email && <span style={{ color: 'hsl(0 70% 50%)', fontSize: '13px' }}>{errors.email}</span>}
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500 }}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              style={{ width: '100%' }}
+            />
+            {errors.password && <span style={{ color: 'hsl(0 70% 50%)', fontSize: '13px' }}>{errors.password}</span>}
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 500 }}>I am a:</label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <label style={{ 
+                flex: 1, 
+                padding: '12px', 
+                border: `2px solid ${role === 'student' ? 'hsl(210 60% 45%)' : 'hsl(220 15% 85%)'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                textAlign: 'center',
+                background: role === 'student' ? 'hsl(210 60% 95%)' : 'white'
+              }}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="student"
+                  checked={role === 'student'}
+                  onChange={() => setRole('student')}
+                  style={{ display: 'none' }}
+                />
+                🎓 Student
+              </label>
+              <label style={{ 
+                flex: 1, 
+                padding: '12px', 
+                border: `2px solid ${role === 'tutor' ? 'hsl(210 60% 45%)' : 'hsl(220 15% 85%)'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                textAlign: 'center',
+                background: role === 'tutor' ? 'hsl(210 60% 95%)' : 'white'
+              }}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="tutor"
+                  checked={role === 'tutor'}
+                  onChange={() => setRole('tutor')}
+                  style={{ display: 'none' }}
+                />
+                👨‍🏫 Tutor
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" style={{ width: '100%', padding: '12px' }}>
+            Create Account
+          </button>
+        </form>
+
+        <p style={{ textAlign: 'center', marginTop: '20px', color: 'hsl(220 10% 50%)' }}>
+          Already have an account? <Link to="/login">Login</Link>
+        </p>
+      </div>
     </div>
   );
 }
