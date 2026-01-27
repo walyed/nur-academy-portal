@@ -1,73 +1,113 @@
-# Welcome to your Lovable project
+# Nur Academy Portal
 
-## Project info
+A Next.js frontend for the Nur Academy tutoring platform.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- User authentication (login/signup)
+- Student dashboard with tutor browsing
+- Tutor dashboard with availability management
+- Real-time chat messaging
+- Booking and payment system
+- Monthly calendar for scheduling
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- Lucide React Icons
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Project Structure
 
-Changes made via Lovable will be committed automatically to this repo.
+```
+nur-academy-portal/
+├── app/
+│   ├── chat/
+│   ├── login/
+│   ├── payment/
+│   ├── signup/
+│   ├── student-dashboard/
+│   ├── tutor-dashboard/
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── ui/
+│   ├── Header.tsx
+│   ├── MonthlyCalendar.tsx
+│   └── StarRating.tsx
+├── context/
+│   └── AuthContext.tsx
+├── lib/
+│   ├── api.ts
+│   └── utils.ts
+├── .env.local
+└── package.json
+```
 
-**Use your preferred IDE**
+## Setup Instructions
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 1. Install Dependencies
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+npm install
+```
 
-Follow these steps:
+### 2. Setup Environment Variables
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Create a `.env.local` file in the root directory:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3. Run Development Server
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:3000`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 4. Build for Production
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+npm start
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Pages
 
-## What technologies are used for this project?
+| Route | Description |
+|-------|-------------|
+| / | Home page |
+| /login | User login |
+| /signup | User registration |
+| /student-dashboard | Student dashboard |
+| /tutor-dashboard | Tutor dashboard |
+| /chat | Messaging system |
+| /payment | Payment processing |
 
-This project is built with:
+## Environment Variables
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+| Variable | Description | Default |
+|----------|-------------|---------|
+| NEXT_PUBLIC_API_URL | Backend API URL | http://localhost:8000/api |
 
-## How can I deploy this project?
+## Backend Requirements
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+This frontend requires the Django backend to be running at `http://localhost:8000`. See the backend README for setup instructions.
 
-## Can I connect a custom domain to my Lovable project?
+## Test Accounts
 
-Yes, you can!
+After seeding the backend database:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+**Tutors:**
+- john@example.com (password: password123)
+- sarah@example.com (password: password123)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Students:**
+- alice@example.com (password: password123)
+- bob@example.com (password: password123)
