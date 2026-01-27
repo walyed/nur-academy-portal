@@ -1,0 +1,11 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/chat/page": "/chat",
+  "/login/page": "/login",
+  "/page": "/",
+  "/payment/page": "/payment",
+  "/signup/page": "/signup",
+  "/student-dashboard/page": "/student-dashboard",
+  "/tutor-dashboard/page": "/tutor-dashboard"
+}
