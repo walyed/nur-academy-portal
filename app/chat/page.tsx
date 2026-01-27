@@ -59,13 +59,34 @@ function ChatContent() {
   useEffect(() => {
     api
       .getContacts()
-      .then((data) => {
+      .then(async (data) => {
         setContacts(data);
         const contactParam = searchParams.get("contact");
         if (contactParam) {
-          const contact = data.find(
-            (c: Contact) => c.id === parseInt(contactParam),
-          );
+          const contactId = parseInt(contactParam);
+          let contact = data.find((c: Contact) => c.id === contactId);
+
+          if (!contact) {
+            try {
+              const tutors = await api.getTutors();
+              const tutor = tutors.find(
+                (t: { id: number }) => t.id === contactId,
+              );
+              if (tutor) {
+                contact = {
+                  id: tutor.id,
+                  name: tutor.name,
+                  role: "tutor" as const,
+                  lastMessage: "",
+                  unread: 0,
+                };
+                setContacts((prev) => [...prev, contact!]);
+              }
+            } catch (error) {
+              console.error("Error fetching tutor:", error);
+            }
+          }
+
           if (contact) setSelectedContact(contact);
         }
       })

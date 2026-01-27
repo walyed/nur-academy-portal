@@ -18,7 +18,8 @@ import {
 interface TimeSlot {
   id: string;
   date: string;
-  time: string;
+  start_time: string;
+  end_time: string;
   available: boolean;
 }
 
@@ -195,7 +196,7 @@ export default function MonthlyCalendar({
                     `}
                     />
                     <span className="font-medium text-[hsl(220_25%_25%)]">
-                      {slot.time}
+                      {slot.start_time} - {slot.end_time}
                     </span>
                   </div>
 

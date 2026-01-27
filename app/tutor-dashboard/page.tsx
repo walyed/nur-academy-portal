@@ -11,7 +11,8 @@ interface TimeSlot {
   id: number;
   tutor: number;
   date: string;
-  time: string;
+  start_time: string;
+  end_time: string;
   available: boolean;
 }
 
@@ -19,7 +20,8 @@ interface Booking {
   id: number;
   student_name: string;
   date: string;
-  time: string;
+  start_time: string;
+  end_time: string;
   subject: string;
   status: string;
 }
@@ -30,8 +32,8 @@ export default function TutorDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [newSlotDate, setNewSlotDate] = useState("");
-  const [startTime, setStartTime] = useState("9:00 AM");
-  const [endTime, setEndTime] = useState("10:00 AM");
+  const [startTime, setStartTime] = useState("9:00");
+  const [endTime, setEndTime] = useState("10:00");
   const [slotMessage, setSlotMessage] = useState("");
   const [slotError, setSlotError] = useState("");
 
@@ -48,7 +50,8 @@ export default function TutorDashboardPage() {
   const toggleAvailability = async (slot: {
     id: string;
     date: string;
-    time: string;
+    start_time: string;
+    end_time: string;
     available: boolean;
   }) => {
     try {
@@ -72,27 +75,32 @@ export default function TutorDashboardPage() {
       return;
     }
 
-    if (!startTime) {
-      setSlotError("Please select a start time");
+    if (!startTime || !endTime) {
+      setSlotError("Please select start and end times");
       return;
     }
 
-    const timeOptions = [
-      "9:00 AM",
-      "10:00 AM",
-      "11:00 AM",
-      "12:00 PM",
-      "1:00 PM",
-      "2:00 PM",
-      "3:00 PM",
-      "4:00 PM",
-      "5:00 PM",
-      "6:00 PM",
-    ];
-    const startIdx = timeOptions.indexOf(startTime);
-    const endIdx = timeOptions.indexOf(endTime);
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(":");
+      const hour = parseInt(hours);
+      const isPM = hour >= 12;
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const period = isPM ? "PM" : "AM";
+      return minutes === "00"
+        ? `${displayHour}:00 ${period}`
+        : `${displayHour}:${minutes} ${period}`;
+    };
 
-    if (endIdx <= startIdx) {
+    const formattedStart = formatTime(startTime);
+    const formattedEnd = formatTime(endTime);
+
+    const startMinutes =
+      parseInt(startTime.split(":")[0]) * 60 +
+      parseInt(startTime.split(":")[1]);
+    const endMinutes =
+      parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+
+    if (endMinutes <= startMinutes) {
       setSlotError("End time must be after start time");
       return;
     }
@@ -100,18 +108,15 @@ export default function TutorDashboardPage() {
     try {
       const response = await api.createSlot({
         date: newSlotDate,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: formattedStart,
+        end_time: formattedEnd,
       });
 
-      if (Array.isArray(response)) {
-        setSlots((prev) => [...prev, ...response]);
-        setSlotMessage(`Successfully added ${response.length} slot(s)`);
-      } else {
-        setSlots((prev) => [...prev, response]);
-        setSlotMessage("Slot added successfully");
-      }
+      setSlots((prev) => [...prev, response]);
+      setSlotMessage("Slot added successfully");
       setNewSlotDate("");
+      setStartTime("9:00");
+      setEndTime("10:00");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to create slot";
@@ -213,43 +218,25 @@ export default function TutorDashboardPage() {
             <label className="block text-sm font-medium text-[hsl(220_10%_40%)] mb-1">
               From
             </label>
-            <select
+            <input
               title="Start Time"
+              type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               className="px-3 py-2 border rounded-lg"
-            >
-              <option value="9:00 AM">9:00 AM</option>
-              <option value="10:00 AM">10:00 AM</option>
-              <option value="11:00 AM">11:00 AM</option>
-              <option value="12:00 PM">12:00 PM</option>
-              <option value="1:00 PM">1:00 PM</option>
-              <option value="2:00 PM">2:00 PM</option>
-              <option value="3:00 PM">3:00 PM</option>
-              <option value="4:00 PM">4:00 PM</option>
-              <option value="5:00 PM">5:00 PM</option>
-            </select>
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-[hsl(220_10%_40%)] mb-1">
               To
             </label>
-            <select
+            <input
               title="End Time"
+              type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className="px-3 py-2 border rounded-lg"
-            >
-              <option value="10:00 AM">10:00 AM</option>
-              <option value="11:00 AM">11:00 AM</option>
-              <option value="12:00 PM">12:00 PM</option>
-              <option value="1:00 PM">1:00 PM</option>
-              <option value="2:00 PM">2:00 PM</option>
-              <option value="3:00 PM">3:00 PM</option>
-              <option value="4:00 PM">4:00 PM</option>
-              <option value="5:00 PM">5:00 PM</option>
-              <option value="6:00 PM">6:00 PM</option>
-            </select>
+            />
           </div>
           <button onClick={addNewSlot} className="px-4 py-2">
             Add Slots
@@ -312,7 +299,7 @@ export default function TutorDashboardPage() {
                     {session.date}
                   </td>
                   <td className="py-3 text-[hsl(220_10%_40%)]">
-                    {session.time}
+                    {session.start_time} - {session.end_time}
                   </td>
                   <td className="py-3 text-[hsl(220_10%_40%)]">
                     {session.subject}
