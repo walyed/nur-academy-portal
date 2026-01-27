@@ -34,6 +34,8 @@ interface AuthContextType {
     subject?: string,
     hourlyRate?: number,
   ) => Promise<void>;
+  updateProfile: (name: string, email: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,26 +44,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = async () => {
+    try {
+      const data = await api.getUser();
+      setUser({
+        id: data.id,
+        name: data.first_name || data.username,
+        email: data.email,
+        role: data.role,
+        subject: data.subject,
+        hourlyRate: data.hourly_rate,
+        rating: data.rating,
+      });
+    } catch {
+      localStorage.removeItem("token");
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      api
-        .getUser()
-        .then((data) => {
-          setUser({
-            id: data.id,
-            name: data.first_name || data.username,
-            email: data.email,
-            role: data.role,
-            subject: data.subject,
-            hourlyRate: data.hourly_rate,
-            rating: data.rating,
-          });
-        })
-        .catch(() => {
-          localStorage.removeItem("token");
-        })
-        .finally(() => setLoading(false));
+      refreshUser().finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
@@ -102,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       subject: subject || "",
       hourly_rate: hourlyRate || 0,
-    } as never);
+    });
     localStorage.setItem("token", data.token);
     setUser({
       id: data.user.id,
@@ -115,8 +119,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateProfile = async (name: string, email: string) => {
+    const data = await api.updateUser({ first_name: name, email });
+    setUser({
+      id: data.id,
+      name: data.first_name || data.username,
+      email: data.email,
+      role: data.role,
+      subject: data.subject,
+      hourlyRate: data.hourly_rate,
+      rating: data.rating,
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, signup }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        signup,
+        updateProfile,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,8 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem("token");
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -34,8 +35,16 @@ export const api = {
     password: string;
     first_name: string;
     role: string;
+    subject?: string;
+    hourly_rate?: number;
   }) =>
     apiRequest("/register/", { method: "POST", body: JSON.stringify(data) }),
+
+  checkEmail: (email: string) =>
+    apiRequest("/check-email/", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 
   login: (data: { email: string; password: string }) =>
     apiRequest("/login/", { method: "POST", body: JSON.stringify(data) }),
@@ -44,12 +53,21 @@ export const api = {
 
   getUser: () => apiRequest("/user/"),
 
+  updateUser: (data: { email?: string; first_name?: string }) =>
+    apiRequest("/user/update/", { method: "PUT", body: JSON.stringify(data) }),
+
+  changePassword: (data: { old_password: string; new_password: string }) =>
+    apiRequest("/user/change-password/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   getTutors: () => apiRequest("/tutors/"),
 
   getSlots: (tutorId?: number) =>
     apiRequest(tutorId ? `/slots/?tutor_id=${tutorId}` : "/slots/"),
 
-  createSlot: (data: { date: string; time: string; available: boolean }) =>
+  createSlot: (data: { date: string; start_time: string; end_time: string }) =>
     apiRequest("/slots/", { method: "POST", body: JSON.stringify(data) }),
 
   updateSlot: (id: number, data: { available: boolean }) =>
@@ -90,6 +108,8 @@ export const api = {
 
   checkNewMessages: (contactId: number, lastId: number) =>
     apiRequest(`/messages/check/?contact_id=${contactId}&last_id=${lastId}`),
+
+  getUnreadCount: () => apiRequest("/messages/unread-count/"),
 
   addRating: (bookingId: number, score: number) =>
     apiRequest("/rating/", {

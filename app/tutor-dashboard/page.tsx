@@ -30,7 +30,10 @@ export default function TutorDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [newSlotDate, setNewSlotDate] = useState("");
-  const [newSlotTime, setNewSlotTime] = useState("9:00 AM");
+  const [startTime, setStartTime] = useState("9:00 AM");
+  const [endTime, setEndTime] = useState("10:00 AM");
+  const [slotMessage, setSlotMessage] = useState("");
+  const [slotError, setSlotError] = useState("");
 
   useEffect(() => {
     Promise.all([api.getSlots(), api.getBookings()])
@@ -61,18 +64,58 @@ export default function TutorDashboardPage() {
   };
 
   const addNewSlot = async () => {
-    if (!newSlotDate || !newSlotTime) return;
+    setSlotMessage("");
+    setSlotError("");
+
+    if (!newSlotDate) {
+      setSlotError("Please select a date");
+      return;
+    }
+
+    if (!startTime) {
+      setSlotError("Please select a start time");
+      return;
+    }
+
+    const timeOptions = [
+      "9:00 AM",
+      "10:00 AM",
+      "11:00 AM",
+      "12:00 PM",
+      "1:00 PM",
+      "2:00 PM",
+      "3:00 PM",
+      "4:00 PM",
+      "5:00 PM",
+      "6:00 PM",
+    ];
+    const startIdx = timeOptions.indexOf(startTime);
+    const endIdx = timeOptions.indexOf(endTime);
+
+    if (endIdx <= startIdx) {
+      setSlotError("End time must be after start time");
+      return;
+    }
 
     try {
-      const newSlot = await api.createSlot({
+      const response = await api.createSlot({
         date: newSlotDate,
-        time: newSlotTime,
-        available: true,
+        start_time: startTime,
+        end_time: endTime,
       });
-      setSlots((prev) => [...prev, newSlot]);
+
+      if (Array.isArray(response)) {
+        setSlots((prev) => [...prev, ...response]);
+        setSlotMessage(`Successfully added ${response.length} slot(s)`);
+      } else {
+        setSlots((prev) => [...prev, response]);
+        setSlotMessage("Slot added successfully");
+      }
       setNewSlotDate("");
     } catch (error) {
-      console.error("Failed to create slot:", error);
+      const message =
+        error instanceof Error ? error.message : "Failed to create slot";
+      setSlotError(message);
     }
   };
 
@@ -153,33 +196,76 @@ export default function TutorDashboardPage() {
           </div>
         </div>
 
-        <div className="flex gap-4 mb-6 flex-wrap">
-          <input
-            title="Select Date"
-            type="date"
-            value={newSlotDate}
-            onChange={(e) => setNewSlotDate(e.target.value)}
-            className="px-3 py-2 border rounded-lg"
-          />
-          <select
-            title="Select Time"
-            value={newSlotTime}
-            onChange={(e) => setNewSlotTime(e.target.value)}
-            className="px-3 py-2 border rounded-lg"
-          >
-            <option value="9:00 AM">9:00 AM</option>
-            <option value="10:00 AM">10:00 AM</option>
-            <option value="11:00 AM">11:00 AM</option>
-            <option value="12:00 PM">12:00 PM</option>
-            <option value="2:00 PM">2:00 PM</option>
-            <option value="3:00 PM">3:00 PM</option>
-            <option value="4:00 PM">4:00 PM</option>
-            <option value="5:00 PM">5:00 PM</option>
-          </select>
+        <div className="flex gap-4 mb-6 flex-wrap items-end">
+          <div>
+            <label className="block text-sm font-medium text-[hsl(220_10%_40%)] mb-1">
+              Date
+            </label>
+            <input
+              title="Select Date"
+              type="date"
+              value={newSlotDate}
+              onChange={(e) => setNewSlotDate(e.target.value)}
+              className="px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[hsl(220_10%_40%)] mb-1">
+              From
+            </label>
+            <select
+              title="Start Time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="px-3 py-2 border rounded-lg"
+            >
+              <option value="9:00 AM">9:00 AM</option>
+              <option value="10:00 AM">10:00 AM</option>
+              <option value="11:00 AM">11:00 AM</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="1:00 PM">1:00 PM</option>
+              <option value="2:00 PM">2:00 PM</option>
+              <option value="3:00 PM">3:00 PM</option>
+              <option value="4:00 PM">4:00 PM</option>
+              <option value="5:00 PM">5:00 PM</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[hsl(220_10%_40%)] mb-1">
+              To
+            </label>
+            <select
+              title="End Time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="px-3 py-2 border rounded-lg"
+            >
+              <option value="10:00 AM">10:00 AM</option>
+              <option value="11:00 AM">11:00 AM</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="1:00 PM">1:00 PM</option>
+              <option value="2:00 PM">2:00 PM</option>
+              <option value="3:00 PM">3:00 PM</option>
+              <option value="4:00 PM">4:00 PM</option>
+              <option value="5:00 PM">5:00 PM</option>
+              <option value="6:00 PM">6:00 PM</option>
+            </select>
+          </div>
           <button onClick={addNewSlot} className="px-4 py-2">
-            Add Slot
+            Add Slots
           </button>
         </div>
+
+        {slotMessage && (
+          <div className="mb-4 p-3 rounded-lg bg-[hsl(145_60%_95%)] text-[hsl(145_60%_30%)]">
+            {slotMessage}
+          </div>
+        )}
+        {slotError && (
+          <div className="mb-4 p-3 rounded-lg bg-[hsl(0_70%_95%)] text-[hsl(0_70%_40%)]">
+            {slotError}
+          </div>
+        )}
 
         <MonthlyCalendar
           slots={slots.map((s) => ({ ...s, id: String(s.id) }))}

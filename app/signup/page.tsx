@@ -4,18 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"student" | "tutor">("student");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<"student" | "tutor" | "">("");
   const [subject, setSubject] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
     password?: string;
+    confirmPassword?: string;
+    role?: string;
     general?: string;
   }>({});
   const [loading, setLoading] = useState(false);
@@ -23,21 +27,43 @@ export default function SignupPage() {
   const { signup } = useAuth();
   const router = useRouter();
 
-  const validate = () => {
-    const newErrors: { name?: string; email?: string; password?: string } = {};
-    if (!name) newErrors.name = "Name is required";
-    if (!email) newErrors.email = "Email is required";
+  const validate = async () => {
+    const newErrors: typeof errors = {};
+
+    if (!name.trim()) newErrors.name = "Name is required";
+    if (!email.trim()) newErrors.email = "Email is required";
     if (!password) newErrors.password = "Password is required";
+    if (password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+    if (password !== confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+    if (!role) newErrors.role = "Please select a role";
+
+    if (email && !newErrors.email) {
+      try {
+        const result = await api.checkEmail(email);
+        if (result.exists) {
+          newErrors.email = "This email is already registered";
+        }
+      } catch {
+        newErrors.general = "Could not verify email";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
-
     setLoading(true);
     setErrors({});
+
+    const isValid = await validate();
+    if (!isValid) {
+      setLoading(false);
+      return;
+    }
 
     try {
       await signup(
@@ -141,6 +167,26 @@ export default function SignupPage() {
             )}
           </div>
 
+          <div style={{ marginBottom: "20px" }}>
+            <label
+              style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}
+            >
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              style={{ width: "100%" }}
+            />
+            {errors.confirmPassword && (
+              <span style={{ color: "hsl(0 70% 50%)", fontSize: "13px" }}>
+                {errors.confirmPassword}
+              </span>
+            )}
+          </div>
+
           <div style={{ marginBottom: "24px" }}>
             <label
               style={{
@@ -195,6 +241,18 @@ export default function SignupPage() {
                 👨‍🏫 Tutor
               </label>
             </div>
+            {errors.role && (
+              <span
+                style={{
+                  color: "hsl(0 70% 50%)",
+                  fontSize: "13px",
+                  display: "block",
+                  marginTop: "6px",
+                }}
+              >
+                {errors.role}
+              </span>
+            )}
           </div>
 
           {role === "tutor" && (
