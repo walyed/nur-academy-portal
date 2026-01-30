@@ -24,19 +24,33 @@ interface TimeSlot {
   available: boolean;
 }
 
+interface Booking {
+  id: number;
+  tutor_name: string;
+  subject: string;
+  date: string;
+  time: string;
+  amount: number;
+  paid: boolean;
+  status: string;
+}
+
 export default function StudentDashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [selectedTutor, setSelectedTutor] = useState<number | null>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingConfirmed, setBookingConfirmed] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .getTutors()
-      .then(setTutors)
+    Promise.all([api.getTutors(), api.getBookings()])
+      .then(([tutorsData, bookingsData]) => {
+        setTutors(tutorsData);
+        setBookings(bookingsData);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -51,16 +65,27 @@ export default function StudentDashboardPage() {
     if (!slot.available) return;
 
     try {
-      await api.createBooking(slot.id);
+      const response = await api.createBooking(slot.id);
       setSlots((prev) =>
-        prev.map((s) => (s.id === slot.id ? { ...s, available: false } : s)),
+        prev.map((s) => (s.id === slot.id ? { ...s, available: false } : s))
       );
       setBookingConfirmed(
-        `Booking confirmed for ${slot.date} at ${slot.start_time}-${slot.end_time}`,
+        `Booking created! Redirecting to payment...`
       );
-      setTimeout(() => setBookingConfirmed(null), 3000);
+      // Refresh bookings to show the new booking
+      api.getBookings().then(setBookings).catch(console.error);
+      // Redirect to payment page after a brief delay
+      setTimeout(() => {
+        router.push("/payment");
+      }, 1500);
     } catch (error) {
       console.error("Booking failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to book this slot. It may have already been booked.";
+      alert(errorMessage);
+      // Refresh slots to get updated availability
+      if (selectedTutor) {
+        api.getSlots(selectedTutor).then(setSlots).catch(console.error);
+      }
     }
   };
 
@@ -68,7 +93,7 @@ export default function StudentDashboardPage() {
     try {
       await api.sendMessage(
         tutorId,
-        "Hello! I'm interested in booking a session.",
+        "Hello! I'm interested in booking a session."
       );
       router.push(`/chat?contact=${tutorId}`);
     } catch (error) {
@@ -78,6 +103,14 @@ export default function StudentDashboardPage() {
   };
 
   const selectedTutorData = tutors.find((t) => t.id === selectedTutor);
+  
+  // Filter upcoming classes (paid bookings with upcoming status)
+  const upcomingClasses = bookings.filter(
+    (b) => b.paid && b.status === "upcoming"
+  );
+  
+  // Filter unpaid bookings
+  const unpaidBookings = bookings.filter((b) => !b.paid);
 
   if (loading) {
     return (
@@ -109,6 +142,140 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
+      {/* Unpaid Bookings Alert */}
+      {unpaidBookings.length > 0 && (
+        <section
+          className="card"
+          style={{
+            marginBottom: "24px",
+            background: "hsl(45 100% 96%)",
+            border: "1px solid hsl(45 80% 70%)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div>
+              <h3 style={{ marginBottom: "8px", color: "hsl(45 80% 30%)" }}>
+                ⚠️ Pending Payments
+              </h3>
+              <p style={{ color: "hsl(45 60% 35%)", margin: 0 }}>
+                You have {unpaidBookings.length} booking
+                {unpaidBookings.length > 1 ? "s" : ""} awaiting payment.
+              </p>
+            </div>
+            <button
+              onClick={() => router.push("/payment")}
+              style={{
+                background: "hsl(45 80% 45%)",
+                color: "white",
+                padding: "10px 20px",
+              }}
+            >
+              Pay Now
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Upcoming Classes Card */}
+      <section className="card" style={{ marginBottom: "24px" }}>
+        <h3 style={{ marginBottom: "20px" }}>📚 My Upcoming Classes</h3>
+
+        {upcomingClasses.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 20px",
+              background: "hsl(220 20% 98%)",
+              borderRadius: "12px",
+            }}
+          >
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>📅</div>
+            <p style={{ color: "hsl(220 10% 50%)", margin: 0 }}>
+              No upcoming classes scheduled.
+            </p>
+            <p
+              style={{ color: "hsl(220 10% 60%)", margin: "8px 0 0 0", fontSize: "14px" }}
+            >
+              Book a session with a tutor below to get started!
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: "12px" }}>
+            {upcomingClasses.map((booking) => (
+              <div
+                key={booking.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "16px 20px",
+                  background: "hsl(210 60% 97%)",
+                  borderRadius: "12px",
+                  border: "1px solid hsl(210 60% 90%)",
+                }}
+              >
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "16px" }}
+                >
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "50%",
+                      background: "hsl(210 60% 45%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "20px",
+                      color: "white",
+                    }}
+                  >
+                    {booking.tutor_name.charAt(0)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: "4px" }}>
+                      {booking.subject} with {booking.tutor_name}
+                    </div>
+                    <div
+                      style={{ fontSize: "14px", color: "hsl(220 10% 50%)" }}
+                    >
+                      📅 {booking.date} • ⏰ {booking.time}
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
+                  <span
+                    style={{
+                      padding: "6px 12px",
+                      background: "hsl(140 60% 90%)",
+                      color: "hsl(140 60% 30%)",
+                      borderRadius: "20px",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    ✓ Confirmed
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Available Tutors Section */}
       <section className="card" style={{ marginBottom: "24px" }}>
         <h3 style={{ marginBottom: "20px" }}>👨‍🏫 Available Tutors</h3>
 
@@ -194,7 +361,7 @@ export default function StudentDashboardPage() {
                     <button
                       onClick={() =>
                         setSelectedTutor(
-                          selectedTutor === tutor.id ? null : tutor.id,
+                          selectedTutor === tutor.id ? null : tutor.id
                         )
                       }
                       style={{ padding: "8px 14px", fontSize: "14px" }}

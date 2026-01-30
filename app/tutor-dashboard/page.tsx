@@ -32,7 +32,7 @@ export default function TutorDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [newSlotDate, setNewSlotDate] = useState("");
-  const [startTime, setStartTime] = useState("9:00");
+  const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [slotMessage, setSlotMessage] = useState("");
   const [slotError, setSlotError] = useState("");
@@ -115,12 +115,19 @@ export default function TutorDashboardPage() {
       setSlots((prev) => [...prev, response]);
       setSlotMessage("Slot added successfully");
       setNewSlotDate("");
-      setStartTime("9:00");
+      setStartTime("09:00");
       setEndTime("10:00");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to create slot";
+      let message = "Failed to create slot";
+      if (error instanceof Error) {
+        message = error.message;
+        // Check for permission errors
+        if (message.includes("Only tutors") || message.includes("403") || message.includes("Forbidden")) {
+          message = "❌ Permission denied. Please ensure you're logged in as a tutor. Try logging out and logging in again.";
+        }
+      }
       setSlotError(message);
+      console.error("Create slot error:", error);
     }
   };
 

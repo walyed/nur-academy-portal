@@ -89,10 +89,36 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
-  processPayment: (bookingId: number) =>
+  processPayment: (bookingId: number, paymentMethodId: string) =>
     apiRequest("/payment/", {
       method: "POST",
+      body: JSON.stringify({ booking_id: bookingId, payment_method_id: paymentMethodId }),
+    }),
+
+  createPaymentIntent: (bookingId: number) =>
+    apiRequest("/payment/create-intent/", {
+      method: "POST",
       body: JSON.stringify({ booking_id: bookingId }),
+    }),
+
+  createCheckoutSession: (bookingId: number, successUrl: string, cancelUrl: string) =>
+    apiRequest("/payment/create-checkout/", {
+      method: "POST",
+      body: JSON.stringify({ 
+        booking_id: bookingId, 
+        success_url: successUrl,
+        cancel_url: cancelUrl 
+      }),
+    }),
+
+  confirmPayment: (bookingId: number, paymentIntentId?: string, sessionId?: string) =>
+    apiRequest("/payment/confirm/", {
+      method: "POST",
+      body: JSON.stringify({ 
+        booking_id: bookingId, 
+        payment_intent_id: paymentIntentId,
+        session_id: sessionId 
+      }),
     }),
 
   getContacts: () => apiRequest("/contacts/"),

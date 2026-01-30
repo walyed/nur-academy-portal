@@ -201,19 +201,20 @@ export default function MonthlyCalendar({
                   </div>
 
                   {editable && onSlotClick && (
-                    <button
-                      onClick={() => onSlotClick(slot)}
-                      className={`
-                        text-xs px-3 py-1.5 rounded-md font-medium transition-colors
-                        ${
-                          slot.available
-                            ? "bg-[hsl(0_65%_55%)] text-white hover:bg-[hsl(0_65%_45%)]"
-                            : "bg-[hsl(145_60%_45%)] text-white hover:bg-[hsl(145_60%_35%)]"
-                        }
-                      `}
-                    >
-                      {slot.available ? "Block" : "Open"}
-                    </button>
+                    <>
+                      {slot.available ? (
+                        <button
+                          onClick={() => onSlotClick(slot)}
+                          className="text-xs px-3 py-1.5 rounded-md font-medium transition-colors bg-[hsl(0_65%_55%)] text-white hover:bg-[hsl(0_65%_45%)]"
+                        >
+                          Block
+                        </button>
+                      ) : (
+                        <span className="text-xs font-medium px-3 py-1.5 text-[hsl(0_65%_40%)]">
+                          Booked
+                        </span>
+                      )}
+                    </>
                   )}
 
                   {!editable && onSlotClick && slot.available && (

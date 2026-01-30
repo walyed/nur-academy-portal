@@ -16,16 +16,11 @@ interface Booking {
 
 export default function PaymentPage() {
   const router = useRouter();
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [name, setName] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -41,26 +36,26 @@ export default function PaymentPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!cardNumber) newErrors.cardNumber = "Card number is required";
-    if (!expiry) newErrors.expiry = "Expiry date is required";
-    if (!cvv) newErrors.cvv = "CVV is required";
-    if (!name) newErrors.name = "Name is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate() || !selectedBooking) return;
+  const handlePayWithStripe = async () => {
+    if (!selectedBooking) return;
 
     setProcessing(true);
+    setError(null);
+
     try {
-      await api.processPayment(selectedBooking.id);
-      setSuccess(true);
-    } catch {
-      setErrors({ general: "Payment failed. Please try again." });
+      const response = await api.createCheckoutSession(
+        selectedBooking.id,
+        `${window.location.origin}/payment/success`,
+        `${window.location.origin}/payment`
+      );
+
+      // Redirect to Stripe Checkout
+      if (response.checkout_url) {
+        window.location.href = response.checkout_url;
+      }
+    } catch (err) {
+      setError("Failed to initiate payment. Please try again.");
+      console.error(err);
     } finally {
       setProcessing(false);
     }
@@ -77,23 +72,6 @@ export default function PaymentPage() {
         }}
       >
         Loading...
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div style={{ maxWidth: "420px", margin: "60px auto", padding: "20px" }}>
-        <div className="card" style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
-          <h2>Payment Successful!</h2>
-          <p style={{ color: "hsl(220 10% 50%)", marginBottom: "24px" }}>
-            Your booking has been confirmed.
-          </p>
-          <button onClick={() => router.push("/student-dashboard")}>
-            Return to Dashboard
-          </button>
-        </div>
       </div>
     );
   }
@@ -117,9 +95,9 @@ export default function PaymentPage() {
   return (
     <div style={{ maxWidth: "420px", margin: "60px auto", padding: "20px" }}>
       <div className="card">
-        <h2 style={{ marginBottom: "20px" }}>💳 Payment</h2>
+        <h2 style={{ marginBottom: "20px" }}>💳 Complete Payment</h2>
 
-        {errors.general && (
+        {error && (
           <div
             style={{
               color: "hsl(0 70% 50%)",
@@ -129,7 +107,7 @@ export default function PaymentPage() {
               borderRadius: "6px",
             }}
           >
-            {errors.general}
+            {error}
           </div>
         )}
 
@@ -145,7 +123,7 @@ export default function PaymentPage() {
               value={selectedBooking?.id || ""}
               onChange={(e) => {
                 const booking = bookings.find(
-                  (b) => b.id === parseInt(e.target.value),
+                  (b) => b.id === parseInt(e.target.value)
                 );
                 setSelectedBooking(booking || null);
               }}
@@ -229,109 +207,67 @@ export default function PaymentPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}
-            >
-              Cardholder Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="John Doe"
-              style={{ width: "100%" }}
-            />
-            {errors.name && (
-              <span style={{ color: "hsl(0 70% 50%)", fontSize: "13px" }}>
-                {errors.name}
-              </span>
-            )}
-          </div>
-
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{ display: "block", marginBottom: "6px", fontWeight: 500 }}
-            >
-              Card Number
-            </label>
-            <input
-              type="text"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              placeholder="1234 5678 9012 3456"
-              maxLength={19}
-              style={{ width: "100%" }}
-            />
-            {errors.cardNumber && (
-              <span style={{ color: "hsl(0 70% 50%)", fontSize: "13px" }}>
-                {errors.cardNumber}
-              </span>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontWeight: 500,
-                }}
+        <button
+          onClick={handlePayWithStripe}
+          disabled={!selectedBooking || processing}
+          style={{
+            width: "100%",
+            padding: "14px",
+            background: "#635bff",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: 600,
+            cursor: processing ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+          }}
+        >
+          {processing ? (
+            "Redirecting to Stripe..."
+          ) : (
+            <>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
               >
-                Expiry
-              </label>
-              <input
-                type="text"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                placeholder="MM/YY"
-                maxLength={5}
-                style={{ width: "100%" }}
-              />
-              {errors.expiry && (
-                <span style={{ color: "hsl(0 70% 50%)", fontSize: "13px" }}>
-                  {errors.expiry}
-                </span>
-              )}
-            </div>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontWeight: 500,
-                }}
-              >
-                CVV
-              </label>
-              <input
-                type="text"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
-                placeholder="123"
-                maxLength={4}
-                style={{ width: "100%" }}
-              />
-              {errors.cvv && (
-                <span style={{ color: "hsl(0 70% 50%)", fontSize: "13px" }}>
-                  {errors.cvv}
-                </span>
-              )}
-            </div>
-          </div>
+                <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z" />
+              </svg>
+              Pay with Stripe - ${selectedBooking?.amount || 0}
+            </>
+          )}
+        </button>
 
-          <button
-            type="submit"
-            disabled={processing || !selectedBooking}
-            style={{ width: "100%", padding: "14px" }}
-          >
-            {processing
-              ? "Processing..."
-              : `Pay $${selectedBooking?.amount || 0}`}
-          </button>
-        </form>
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "12px",
+            background: "hsl(220 20% 98%)",
+            borderRadius: "8px",
+            fontSize: "13px",
+            color: "hsl(220 10% 50%)",
+            textAlign: "center",
+          }}
+        >
+          🔒 You will be redirected to Stripe&apos;s secure payment page
+        </div>
+
+        <div
+          style={{
+            marginTop: "12px",
+            fontSize: "12px",
+            color: "hsl(220 10% 60%)",
+            textAlign: "center",
+          }}
+        >
+          Test card: 4242 4242 4242 4242 | Exp: Any future date | CVC: Any 3
+          digits
+        </div>
       </div>
     </div>
   );
