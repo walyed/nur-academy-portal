@@ -26,12 +26,14 @@ interface TimeSlot {
 interface MonthlyCalendarProps {
   slots: TimeSlot[];
   onSlotClick?: (slot: TimeSlot) => void;
+  onSlotDelete?: (slotId: number) => void;
   editable?: boolean;
 }
 
 export default function MonthlyCalendar({
   slots,
   onSlotClick,
+  onSlotDelete,
   editable = false,
 }: MonthlyCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -200,21 +202,28 @@ export default function MonthlyCalendar({
                     </span>
                   </div>
 
-                  {editable && onSlotClick && (
-                    <>
+                  {editable && (
+                    <div className="flex items-center gap-2">
                       {slot.available ? (
-                        <button
-                          onClick={() => onSlotClick(slot)}
-                          className="text-xs px-3 py-1.5 rounded-md font-medium transition-colors bg-[hsl(0_65%_55%)] text-white hover:bg-[hsl(0_65%_45%)]"
-                        >
-                          Block
-                        </button>
+                        onSlotDelete && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm('⚠️ Are you sure you want to delete this time slot?\n\nThis action cannot be undone.')) {
+                                onSlotDelete(Number(slot.id));
+                              }
+                            }}
+                            className="text-xs px-3 py-1.5 rounded-md font-medium transition-colors bg-[hsl(0_65%_55%)] text-white hover:bg-[hsl(0_65%_45%)] shadow-sm"
+                            title="Delete this time slot"
+                          >
+                            🗑️ Delete
+                          </button>
+                        )
                       ) : (
-                        <span className="text-xs font-medium px-3 py-1.5 text-[hsl(0_65%_40%)]">
-                          Booked
+                        <span className="text-xs font-medium px-3 py-1.5 text-[hsl(0_65%_40%)] bg-[hsl(0_65%_95%)] rounded-md">
+                          📅 Booked
                         </span>
                       )}
-                    </>
+                    </div>
                   )}
 
                   {!editable && onSlotClick && slot.available && (

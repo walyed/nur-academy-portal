@@ -63,6 +63,38 @@ export default function TutorDashboardPage() {
       );
     } catch (error) {
       console.error("Failed to update slot:", error);
+      const errorMsg = error instanceof Error ? error.message : "Failed to update slot";
+      if (errorMsg.includes("Authentication") || errorMsg.includes("401")) {
+        alert("⚠️ Session expired. Please logout and login again.");
+      } else if (errorMsg.includes("booked") || errorMsg.includes("Cannot reopen")) {
+        alert("❌ This slot has been booked and cannot be reopened.");
+      } else {
+        alert(`Error: ${errorMsg}`);
+      }
+      // Refresh slots to get current state
+      api.getSlots().then(setSlots).catch(console.error);
+    }
+  };
+
+  const deleteSlot = async (slotId: number) => {
+    if (!confirm("Are you sure you want to delete this time slot?")) {
+      return;
+    }
+
+    try {
+      await api.deleteSlot(slotId);
+      setSlots((prev) => prev.filter((s) => s.id !== slotId));
+      setSlotMessage("Slot deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete slot:", error);
+      const errorMsg = error instanceof Error ? error.message : "Failed to delete slot";
+      if (errorMsg.includes("Authentication") || errorMsg.includes("401")) {
+        alert("⚠️ Session expired. Please logout and login again.");
+      } else if (errorMsg.includes("booked")) {
+        alert("❌ Cannot delete a slot that has been booked.");
+      } else {
+        alert(`Error: ${errorMsg}`);
+      }
     }
   };
 
@@ -264,6 +296,7 @@ export default function TutorDashboardPage() {
         <MonthlyCalendar
           slots={slots.map((s) => ({ ...s, id: String(s.id) }))}
           onSlotClick={toggleAvailability}
+          onSlotDelete={deleteSlot}
           editable={true}
         />
       </section>
